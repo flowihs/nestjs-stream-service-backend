@@ -132,7 +132,7 @@ const config = {
       "value": "prisma-client-js"
     },
     "output": {
-      "value": "C:\\Users\\sabia\\Desktop\\teastream\\teastream-backend\\generated",
+      "value": "/Users/arsenij/Documents/projects/teastream/nestjs-stream-service-backend/generated",
       "fromEnvVar": null
     },
     "config": {
@@ -141,17 +141,16 @@ const config = {
     "binaryTargets": [
       {
         "fromEnvVar": null,
-        "value": "windows",
+        "value": "darwin-arm64",
         "native": true
       }
     ],
     "previewFeatures": [],
-    "sourceFilePath": "C:\\Users\\sabia\\Desktop\\teastream\\teastream-backend\\prisma\\schema.prisma",
+    "sourceFilePath": "/Users/arsenij/Documents/projects/teastream/nestjs-stream-service-backend/prisma/schema.prisma",
     "isCustomOutput": true
   },
   "relativeEnvPaths": {
-    "rootEnvPath": null,
-    "schemaEnvPath": "../.env"
+    "rootEnvPath": null
   },
   "relativePath": "../prisma",
   "clientVersion": "5.22.0",

@@ -1,7 +1,33 @@
-import { Injectable } from "@nestjs/common";
+import {
+	CanActivate,
+	ExecutionContext,
+	Injectable,
+	UnauthorizedException
+} from "@nestjs/common";
+import { GqlExecutionContext } from "@nestjs/graphql";
+
+import { PrismaService } from "@/src/core/prisma/prisma.service";
 
 @Injectable()
-export class GqlAuthGuard {
-	return;
-	1;
+export class GqlAuthGuard implements CanActivate {
+	public constructor(private readonly prismaService: PrismaService) {}
+
+	public async canActivate(context: ExecutionContext): Promise<boolean> {
+		const ctx: GqlExecutionContext = GqlExecutionContext.create(context);
+		const request = ctx.getContext().req;
+
+		if (typeof request.sessiobn.userId === "undefined") {
+			throw new UnauthorizedException("Пользователь не авторизован");
+		}
+
+		const user = await this.prismaService.user.findUnique({
+			where: {
+				id: request.session.userId
+			}
+		});
+
+		request.user = user;
+
+		return true;
+	}
 }
