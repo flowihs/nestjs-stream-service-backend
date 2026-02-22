@@ -1,8 +1,8 @@
 import { Global, Module } from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
+import Redis from "ioredis";
 
 import { RedisService } from "./redis.service";
-import Redis from "ioredis";
-import { ConfigService } from "@nestjs/config";
 
 @Global()
 @Module({
@@ -11,6 +11,6 @@ import { ConfigService } from "@nestjs/config";
 })
 export class RedisModule extends Redis {
 	public constructor(private readonly configService: ConfigService) {
-		super(configService.getOrThrow<string>('REDIS_URI'));
+		super(configService.getOrThrow<string>("REDIS_URI"));
 	}
 }

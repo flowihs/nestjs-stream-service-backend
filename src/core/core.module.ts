@@ -7,6 +7,7 @@ import { PrismaModule } from "./prisma/prisma.module";
 import { RedisModule } from "./redis/redis.module";
 import { getGraphQLConfig } from "@/src/core/config/graphql.config";
 import { AccountModule } from "@/src/modules/auth/account/account.module";
+import { SessionModule } from "@/src/modules/auth/session/session.module";
 import { IS_DEV_ENV } from "@/src/shared/utils/is-dev.util";
 
 @Module({
@@ -23,7 +24,8 @@ import { IS_DEV_ENV } from "@/src/shared/utils/is-dev.util";
 			inject: [ConfigService]
 		}),
 		RedisModule,
-		AccountModule
+		AccountModule,
+		SessionModule
 	],
 	controllers: [],
 	providers: []

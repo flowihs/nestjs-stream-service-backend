@@ -1,7 +1,4 @@
-import {
-	ConflictException,
-	Injectable,
-} from "@nestjs/common";
+import { ConflictException, Injectable } from "@nestjs/common";
 import { hash } from "argon2";
 
 import { PrismaService } from "@/src/core/prisma/prisma.service";
