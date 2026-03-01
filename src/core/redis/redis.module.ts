@@ -9,8 +9,4 @@ import { RedisService } from "./redis.service";
 	providers: [RedisService],
 	exports: [RedisService]
 })
-export class RedisModule extends Redis {
-	public constructor(private readonly configService: ConfigService) {
-		super(configService.getOrThrow<string>("REDIS_URI"));
-	}
-}
+export class RedisModule {}

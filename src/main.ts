@@ -1,7 +1,6 @@
 import { ValidationPipe } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { NestFactory } from "@nestjs/core";
-import { RedisStore } from "connect-redis";
 import cookieParser from "cookie-parser";
 import session from "express-session";
 
@@ -10,6 +9,9 @@ import { RedisService } from "@/src/core/redis/redis.service";
 import { ms } from "@/src/shared/utils/ms.util";
 import type { StringValue } from "@/src/shared/utils/ms.util";
 import { parseBoolean } from "@/src/shared/utils/parse-boolean";
+
+// @ts-ignore
+const connectRedis = require("connect-redis");
 
 async function bootstrap() {
 	const app = await NestFactory.create(CoreModule);
@@ -28,15 +30,21 @@ async function bootstrap() {
 	const sessionMaxAgeStr = config.getOrThrow<string>("SESSION_MAX_AGE");
 	const maxAgeMs = ms(sessionMaxAgeStr as StringValue);
 
+	const RedisStore = connectRedis(session);
+
 	app.use(
 		session({
 			secret: config.getOrThrow<string>("SESSION_SECRET"),
 			name: config.getOrThrow<string>("SESSION_NAME"),
 			resave: false,
 			saveUninitialized: false,
+			store: new RedisStore({
+				client: redis,
+				prefix: config.getOrThrow<string>("SESSION_FOLDER")
+			}),
 			cookie: {
 				domain: config.getOrThrow<string>("SESSION_DOMAIN"),
-				maxAge: maxAgeMs, // теперь number
+				maxAge: maxAgeMs,
 				httpOnly: parseBoolean(
 					config.getOrThrow<string>("SESSION_HTTP_ONLY")
 				),
@@ -44,11 +52,7 @@ async function bootstrap() {
 					config.getOrThrow<string>("SESSION_SECURE")
 				),
 				sameSite: "lax"
-			},
-			store: new RedisStore({
-				client: redis,
-				prefix: config.getOrThrow<string>("SESSION_FOLDER")
-			})
+			}
 		})
 	);
 
