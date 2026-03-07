@@ -28,6 +28,12 @@ export class UserModel implements User {
 	})
 	bio: string;
 
+	@Field(() => Boolean)
+	isVerified: boolean;
+
+	@Field(() => Boolean)
+	isEmailVerified: boolean;
+
 	@Field(() => Date)
 	createdAt: Date;
 
