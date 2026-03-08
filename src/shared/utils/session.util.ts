@@ -2,21 +2,8 @@ import { InternalServerErrorException } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { Request } from "express";
 
-
-
 import type { User } from "@/generated";
 import type { SessionMetadata } from "@/src/shared/types/session-metadata.types";
-
-
-
-
-
-
-
-
-
-
-
 
 export function saveSession(
 	req: Request,
@@ -60,4 +47,4 @@ export function destroySession(req: Request, configService: ConfigService) {
 			resolve(true);
 		});
 	});
-};
+}

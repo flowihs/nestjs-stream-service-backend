@@ -3,34 +3,65 @@ import {
 	Injectable,
 	NotFoundException
 } from "@nestjs/common";
-import type { Request } from "express";
+import { Request } from "express";
 
-import { TokenType, User } from "@/generated";
+import { $Enums } from "@/generated";
 import { PrismaService } from "@/src/core/prisma/prisma.service";
+import { NewPasswordInput } from "@/src/modules/auth/password-recovery/inputs/new-password.input";
+import { ResetPasswordInput } from "@/src/modules/auth/password-recovery/inputs/reset-password.input";
 import { MailService } from "@/src/modules/libs/mail/mail.service";
-import { VerificationInput } from "@/src/modules/verification/inputs/verification.input";
 import { generateToken } from "@/src/shared/utils/generate-token.util";
 import { getSessionMetadata } from "@/src/shared/utils/session-metabase.util";
-import { saveSession } from "@/src/shared/utils/session.util";
+
+import TokenType = $Enums.TokenType;
+import { hash } from "argon2";
 
 @Injectable()
-export class VerificationService {
+export class PasswordRecoveryService {
 	public constructor(
 		private readonly prismaService: PrismaService,
 		private readonly mailService: MailService
 	) {}
 
-	public async verify(
+	public async resetPassword(
 		req: Request,
-		input: VerificationInput,
+		input: ResetPasswordInput,
 		userAgent: string
 	) {
-		const { token } = input;
+		const { email } = input;
+
+		const user = await this.prismaService.user.findUnique({
+			where: { email }
+		});
+
+		if (!user) {
+			throw new NotFoundException("Пользователь не найден");
+		}
+
+		const resetToken = await generateToken(
+			this.prismaService,
+			user,
+			TokenType.PASSWORD_RESET
+		);
+
+		const metadata = getSessionMetadata(req, userAgent);
+
+		await this.mailService.sendPasswordResetToken(
+			user.email,
+			resetToken.token,
+			metadata
+		);
+
+		return true;
+	}
+
+	public async newPassword(input: NewPasswordInput) {
+		const { password, token } = input;
 
 		const existingToken = await this.prismaService.token.findUnique({
 			where: {
 				token,
-				type: TokenType.EMAIL_VERIFY
+				type: TokenType.PASSWORD_RESET
 			},
 			include: {
 				user: true
@@ -56,37 +87,21 @@ export class VerificationService {
 			throw new BadRequestException("Токен истек");
 		}
 
-		const user = await this.prismaService.user.update({
+		await this.prismaService.user.update({
 			where: {
 				id: existingToken.user.id
 			},
 			data: {
-				isEmailVerified: true
+				password: await hash(password)
 			}
 		});
 
 		await this.prismaService.token.delete({
 			where: {
-				id: existingToken.id
+				id: existingToken.id,
+				type: TokenType.PASSWORD_RESET
 			}
 		});
-
-		const metadata = getSessionMetadata(req, userAgent);
-
-		return saveSession(req, user, metadata);
-	}
-
-	public async sendVerificationToken(user: User) {
-		const verificationToken = await generateToken(
-			this.prismaService,
-			user,
-			TokenType.EMAIL_VERIFY
-		);
-
-		await this.mailService.sendVerificationToken(
-			user.email,
-			verificationToken.token
-		);
 
 		return true;
 	}
