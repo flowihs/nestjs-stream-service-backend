@@ -22,6 +22,9 @@ model User {
 
   isVerified Boolean @default(false) @map("is_verifed")
 
+  isTotpEnabled Boolean @default(false) @map("is_totp_enabled")
+  totpSecret    String? @map("totp_secret")
+
   isEmailVerified Boolean @default(false) @map("is_mail_verifed")
 
   tokens Token[]

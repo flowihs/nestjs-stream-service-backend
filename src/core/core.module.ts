@@ -12,6 +12,7 @@ import { IS_DEV_ENV } from "@/src/shared/utils/is-dev.util";
 import { VerificationModule } from "@/src/modules/verification/verification.module";
 import { MailModule } from "@/src/modules/libs/mail/mail.module";
 import { PasswordRecoveryModule } from "@/src/modules/auth/password-recovery/password-recovery.module";
+import { TotpModule } from "@/src/modules/auth/totp/totp/totp.module";
 
 @Module({
 	imports: [
@@ -31,7 +32,8 @@ import { PasswordRecoveryModule } from "@/src/modules/auth/password-recovery/pas
 		MailModule,
 		SessionModule,
 		VerificationModule,
-		PasswordRecoveryModule
+		PasswordRecoveryModule,
+		TotpModule
 	],
 	controllers: [],
 	providers: []

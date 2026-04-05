@@ -1,14 +1,10 @@
-import {
-	BadRequestException,
-	ConflictException,
-	Injectable,
-	InternalServerErrorException,
-	NotFoundException,
-	UnauthorizedException
-} from "@nestjs/common";
+import { BadRequestException, ConflictException, Injectable, InternalServerErrorException, NotFoundException, UnauthorizedException } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { verify } from "argon2";
 import { Request } from "express";
+import { TOTP } from "otpauth";
+
+
 
 import { PrismaService } from "@/src/core/prisma/prisma.service";
 import { RedisService } from "@/src/core/redis/redis.service";
@@ -16,6 +12,23 @@ import { LoginInput } from "@/src/modules/auth/session/inputs/login.input";
 import { VerificationService } from "@/src/modules/verification/verification.service";
 import { getSessionMetadata } from "@/src/shared/utils/session-metabase.util";
 import { destroySession, saveSession } from "@/src/shared/utils/session.util";
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 @Injectable()
 export class SessionService {
@@ -58,7 +71,7 @@ export class SessionService {
 	}
 
 	public async login(req: Request, input: LoginInput, userAgent: string) {
-		const { login, password } = input;
+		const { login, password, pin } = input;
 
 		const user = await this.prismaService.user.findFirst({
 			where: {
@@ -86,8 +99,36 @@ export class SessionService {
 		if (!user.isEmailVerified) {
 			await this.verificationService.sendVerificationToken(user);
 
-			throw new BadRequestException("Аккаунт не верифицирован." +
-				"Пожалуйста, проверьте свою почту для подтверждения");
+			throw new BadRequestException(
+				"Аккаунт не верифицирован." +
+					"Пожалуйста, проверьте свою почту для подтверждения"
+			);
+		}
+
+		if (user.isTotpEnabled) {
+			if (!pin) {
+				return {
+					message: "Необходим код для завершения авторизации"
+				};
+			}
+
+			if (!user.totpSecret) {
+				throw new BadRequestException("TOTP секрет не настроен");
+			}
+
+			const totp = new TOTP({
+				issuer: "Stream",
+				label: `${user.email}`,
+				algorithm: "SHA1",
+				digits: 6,
+				secret: user.totpSecret
+			});
+
+			const delta = totp.validate({ token: pin })
+
+			if (!delta) {
+				throw new BadRequestException("Неверный код")
+			}
 		}
 
 		const metadata = getSessionMetadata(req, userAgent);
